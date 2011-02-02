@@ -139,7 +139,7 @@ class LinkIt extends Plugin
 			Options::set('linkit__publickey', $login->public_key);
 			Session::notice(_t('Successful login.'));
 		}
-		return true; // do not display the form again
+		return _t('You have logged in successfully', 'linkit'); // do not display the form again
 	}
 
 	public function action_plugin_ui_logout()
@@ -148,6 +148,7 @@ class LinkIt extends Plugin
 		$ui->append('static', 'notice', _t('You have logged out.'));
 		$ui->out();
 		Session::notice(_t('Successful logout.'));
+		Options::set('linkit__privatekey', null);
 	}
 	
 	function filter_post_actions($actions, $post)
@@ -203,7 +204,9 @@ class LinkIt extends Plugin
 			//$result = $this->api_download($post->guid);
 			//$post->info->linkit_content = $result->content;
 			//$post->info->commit();
-			Utils::debug($post->info->linkit_content);
+//Utils::debug($post->info->linkit_content);
+			Session::notice(_t("Sync'ed the post \"%s\" to 123LinkIt", array($post->title), 'linkit'));
+			Utils::redirect(URL::get('admin', array('page'=>'posts')));
 		}
 	}
 	
@@ -212,10 +215,10 @@ class LinkIt extends Plugin
 		Stack::add('template_header_javascript', Site::get_url('scripts') . '/jquery.js', 'jquery');
 	}
 	
-	function filter_post_content($content, $post)
+	function filter_post_content_out($content, $post)
 	{
 		if($post->info->linkit_content) {
-			//return $post->info->linkit_content;
+			return $post->info->linkit_content;
 		}
 		return $content;
 	}
@@ -237,7 +240,7 @@ class LinkIt extends Plugin
 						break;
 				}
 			}
-			Utils::debug(self::BASE_URL . $fn, $outputs);
+//Utils::debug(self::BASE_URL . $fn, $outputs);
 			$rr = new RemoteRequest(self::BASE_URL . $fn, 'POST', 180);
 			$rr->set_postdata($outputs);
 			$rr->execute();
